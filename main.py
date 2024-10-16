@@ -176,7 +176,6 @@ def login():
         if not check_password_hash(user.password, password):
             flash('Password incorrect, please try again.')
             return redirect(url_for('login'))
-        print(current_user.email)
         
         login_user(user)
         #print(f"Current User ID: {current_user.id}")
@@ -229,8 +228,8 @@ def show_post(post_id):
     year = datetime.now().year
 
     # Query comments and eagerly load the author relationship to avoid lazy loading issues
-    comments = Comment.query.filter_by(post_id=post_id).options(joinedload(Comment.author)).all()
-
+    #comments = Comment.query.filter_by(post_id=post_id).options(joinedload(Comment.author)).all()
+    comments = Comment.query.filter_by(post_id=post_id).all()
     # Debugging: Print author emails
     print([comment.author.email for comment in comments])
 
