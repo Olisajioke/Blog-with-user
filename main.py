@@ -193,9 +193,13 @@ def logout():
     print(app.url_map)
     return redirect(url_for('get_all_posts'))
 
+from sqlalchemy.orm import joinedload
+from datetime import datetime
+
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
 def show_post(post_id):
     form = CommentForm()
+    
     # Check if post_id is provided as a query parameter (from another route)
     retrieved_post = request.args.get('post_id')
     if retrieved_post:
@@ -213,9 +217,9 @@ def show_post(post_id):
         if form.validate_on_submit():
             new_comment = Comment(
                 text=form.comment.data,
-                author=current_user,
+                author_id=current_user.id,  # Set author_id correctly
                 post_id=post_id,
-                date = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+                date=datetime.now().strftime("%d-%m-%Y %H:%M:%S")
             )
             db.session.add(new_comment)
             db.session.commit()
@@ -223,10 +227,14 @@ def show_post(post_id):
             return redirect(url_for('show_post', post_id=post_id))
 
     year = datetime.now().year
-    comments = Comment.query.filter_by(post_id=post_id).all()
 
-    print([comment.author.email for comment in comments])  # Check if author emails are available    
-    return render_template("post.html", post=requested_post, year=year, form=form, comments=comments)
+    # Query comments and eagerly load the author relationship to avoid lazy loading issues
+    comments = Comment.query.filter_by(post_id=post_id).options(joinedload(Comment.author)).all()
+
+    # Debugging: Print author emails
+    print([comment.author.email for comment in comments])
+
+    return render_template("post.html", post=requested_post, year=year, form=form, comments=comments, gravatar=gravatar)
 
 
 @app.route("/about")

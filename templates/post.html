@@ -58,13 +58,11 @@
                 <li>
                 {% if comments %}
                     {% for comment in comments %}
-                    <p>Email: {{ comment.author.email }}</p>
                       <div class="commenterImage">
                         <img src="{{ gravatar(comment.author.email) }}" alt="User Avatar">
                       </div>
                       <div class="commentText">
                             <p>{{ comment.text|safe }}</p>
-                            <p>{{ gravatar(current_user.email) }}</p>
                           <span class="date sub-text"><strong>{{ comment.author.name }} on {{ comment.date}}</strong></span>
                         
                           {%if current_user.id == post.author_id %}
