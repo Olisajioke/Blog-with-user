@@ -14,6 +14,7 @@ from datetime import datetime
 from flask_principal import Identity, AnonymousIdentity, identity_changed
 from functools import wraps
 from sqlalchemy.orm import joinedload
+from datetime import timedelta
 
 
 
@@ -29,6 +30,7 @@ login_manager.init_app(app)
 ##CONNECT TO DB
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30) #REMEMBER - To control session lifetime
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -162,13 +164,14 @@ def register():
         new_user = User(
             email=form.email.data,
             password=generate_password_hash(form.password.data, method='pbkdf2:sha256', salt_length=8),
-            name=(form.name.data).title()
+            name=(form.name.data).title(),
+            username = form.username.data
         )
         db.session.add(new_user)
         db.session.commit()
         login_user(new_user)
         return redirect(url_for('login'))
-    return render_template("register.html", form=form, year=year)
+    return render_template("register.html", form=form, year=year, gravatar=gravatar)
 
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -188,6 +191,7 @@ def login():
             return redirect(url_for('login'))
         
         login_user(user)
+        session.permanent = True
         #identity_changed.send(app, identity=Identity(user.id))
         return redirect(url_for('get_all_posts'))
     return render_template("login.html", form=form, year=year)
@@ -261,6 +265,7 @@ def contact():
 def add_new_post():
     year = datetime.now().year
     form = CreatePostForm()
+    user = current_user
     if request.method == 'POST':
         new_post = BlogPost(
             title=form.title.data,
@@ -273,7 +278,7 @@ def add_new_post():
         db.session.add(new_post)
         db.session.commit()
         return redirect(url_for("get_all_posts"))
-    return render_template("make-post.html", form=form, year=year)
+    return render_template("make-post.html", form=form, year=year, user=user, gravatar=gravatar)
 
 
 @app.route("/edit-post/<int:post_id>", methods=["GET", "POST"])
@@ -283,6 +288,7 @@ def edit_post(post_id):
     year = datetime.now().year
     #post = BlogPost.query.get(post_id)
     post = db.session.get(BlogPost, post_id)
+    user = current_user
     edit_form = CreatePostForm(
         title=post.title,
         subtitle=post.subtitle,
@@ -299,7 +305,7 @@ def edit_post(post_id):
         db.session.commit()
         return redirect(url_for("show_post", post_id=post.id))
 
-    return render_template("make-post.html", form=edit_form, year=year)
+    return render_template("make-post.html", form=edit_form, year=year, gravatar=gravatar, user=user)
 
 
 @app.route("/delete/<int:post_id>", methods=["GET", "POST"])
