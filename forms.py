@@ -18,6 +18,7 @@ class RegisterForm(FlaskForm):
     password = PasswordField("Password", validators=[DataRequired()])
     confirm_password = PasswordField("Confirm Password", validators=[DataRequired()])
     name = StringField("Name", validators=[DataRequired()])
+    username = StringField("Username", validators=[DataRequired()])
     submit = SubmitField("Sign Me Up!")
 
 
@@ -30,3 +31,11 @@ class LoginForm(FlaskForm):
 class CommentForm(FlaskForm):
     comment = CKEditorField("Leave a Comment", validators=[DataRequired()])
     submit = SubmitField("Submit Comment")
+
+class EditProfileForm(FlaskForm):
+    email = StringField("Email", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired()])
+    confirm_password = PasswordField("Confirm Password", validators=[DataRequired()])
+    name = StringField("Name", validators=[DataRequired()])
+    username = StringField("Username", validators=[DataRequired()])
+    submit = SubmitField("Sign Me Up!")

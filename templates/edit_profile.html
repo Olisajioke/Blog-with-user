@@ -1,0 +1,42 @@
+{% extends 'bootstrap/base.html' %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content %}
+{% include "header.html" %}
+
+  <!-- Page Header -->
+  <header class="masthead" style="background-image: url('https://plus.unsplash.com/premium_vector-1728203572844-4072045f9d93?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxpbGx1c3RyYXRpb25zLWZlZWR8MTN8fHxlbnwwfHx8fHw%3D')">
+    <div class="overlay"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+          <div class="page-heading">
+            <h2>Welcome {{ user.username }}</h2>
+            <span class="subheading">Kindly edit Your Profile below</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-md-10 mx-auto">
+        {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <ul class=flashes>
+                    {% for message in messages %}
+                        <li><strong>{{ message }}</strong></li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+                {{ form.csrf_token }}
+                {{ form.hidden_tag() }}
+       {{ wtf.quick_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+      </div>
+    </div>
+  </div>
+
+{% include "footer.html" %}
+{% endblock %}

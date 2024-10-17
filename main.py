@@ -8,11 +8,13 @@ from sqlalchemy.orm import relationship
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 from flask_gravatar import Gravatar
-from forms import CreatePostForm, RegisterForm, LoginForm
+from forms import CreatePostForm, RegisterForm, LoginForm, EditProfileForm
 from flask_migrate import Migrate
 from datetime import datetime
 from flask_principal import Identity, AnonymousIdentity, identity_changed
 from functools import wraps
+from sqlalchemy.orm import joinedload
+
 
 
 #create a new flask app
@@ -71,6 +73,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(250), unique=True, nullable=False)
     password = db.Column(db.String(250), nullable=False)
     name = db.Column(db.String(250), nullable=False)
+    username = db.Column(db.String(250), nullable=False, default=None)
     posts = relationship("BlogPost", back_populates="author")
     comments = relationship("Comment", back_populates="author")  # Relationship to comments
 
@@ -131,7 +134,7 @@ def get_all_posts():
     posts = BlogPost.query.all()
     year = datetime.now().year
     users = User.query.all()
-    return render_template("index.html", all_posts=posts, year=year, users=users)
+    return render_template("index.html", all_posts=posts, year=year, users=users, gravatar=gravatar)
 
 
 @login_manager.user_loader
@@ -142,9 +145,16 @@ def load_user(user_id):
 def register():
     year = datetime.now().year
     form = RegisterForm()
+     # Fetch all users
+    users= User.query.all()
+    # Extract emails into a list
+    usernames = [user.username for user in users]
     if form.validate_on_submit():
         if User.query.filter_by(email=form.email.data).first():
             flash("You've already signed up with that email, log in instead!")
+            return redirect(url_for('login'))
+        if form.username.data in usernames:
+            flash("Sorry, someone already has that username, please choose another one!")
             return redirect(url_for('login'))
         if form.password.data != form.confirm_password.data:
             flash("Passwords don't match, please try again.")
@@ -178,9 +188,7 @@ def login():
             return redirect(url_for('login'))
         
         login_user(user)
-        #print(f"Current User ID: {current_user.id}")
-        #print(f"Is Authenticated: {current_user.is_authenticated}")
-
+        #identity_changed.send(app, identity=Identity(user.id))
         return redirect(url_for('get_all_posts'))
     return render_template("login.html", form=form, year=year)
 
@@ -192,8 +200,7 @@ def logout():
     print(app.url_map)
     return redirect(url_for('get_all_posts'))
 
-from sqlalchemy.orm import joinedload
-from datetime import datetime
+
 
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
 def show_post(post_id):
@@ -318,6 +325,53 @@ def delete_comment(comment_id):
     comment_id = comment_to_delete.post_id
     return redirect(url_for('show_post', post_id=comment_id))
 
+
+#display profile
+@app.route('/profile/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+def profile(user_id):
+    if request.method == 'GET':
+        user =  user = db.session.get(User, user_id)
+        return render_template('profile.html', user=user, gravatar=gravatar)
+
+
+#edit profile
+@app.route('/edit_profile/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+def edit_profile(user_id):
+    user = db.session.get(User, user_id)
+    #form = EditProfileForm()
+    year = datetime.now().year
+     # Fetch all users
+    users= User.query.all()
+    # Extract emails into a list
+    usernames = [user.username for user in users]
+    edit_user_form = EditProfileForm(
+        name = user.name,
+        email = user.email,
+        username = user.username,
+        password = None,
+        confirm_password = None
+    )
+    if request.method == "POST":
+        if edit_user_form.password.data != edit_user_form.confirm_password.data:
+            flash("Passwords don't match, please review")
+            return render_template("edit_profile.html", year=year, gravatar=gravatar, user=user, form=edit_user_form)
+        if edit_user_form.username.data in usernames and edit_user_form.username.data != user.username:
+            flash("Sorry, someone else in our database already has that username. Perhaps stick with your old one or try something new?")
+            return render_template("edit_profile.html", year=year, gravatar=gravatar, user=user, form=edit_user_form)
+        
+        ##save data to database if requirements are met
+        user.name = edit_user_form.name.data.title()
+        user.email = edit_user_form.email.data
+        user.password = generate_password_hash(edit_user_form.password.data, method='pbkdf2:sha256', salt_length=8)
+        user.username = edit_user_form.username.data
+        db.session.commit()
+        return render_template("profile.html", year=year, gravatar=gravatar, user=user)
+    return render_template("edit_profile.html", year=year, form=edit_user_form, gravatar=gravatar, user=user)
+
+        
+       
 
 with app.app_context():
     db.create_all()

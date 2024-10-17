@@ -1,0 +1,32 @@
+{% extends "bootstrap/base.html" %}
+{% include "header.html" %}
+
+
+{% block title %} User Profile {% endblock %}
+
+{% block content %}
+    <header class="masthead" style="background-image: url('https://plus.unsplash.com/premium_photo-1721136876189-d8994e972c6a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHx0b3BpYy1mZWVkfDUxfENEd3V3WEpBYkV3fHxlbnwwfHx8fHw%3D')">
+        <div class="overlay"></div>
+        <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="page-heading">
+                <hr/>
+                <div class="Image" >
+                    <img src="{{ gravatar(user.email) }}" alt="User Avatar">
+                </div>
+                <h1><span>NAME: {{ user.name }}</span></h1> 
+                <h2>EMAIL: {{ user.email }}</h2>
+                <h2>USERNAME: {{ user.username }}</h2>
+                <hr/>
+                <div class="clearfix">
+                    <a class="btn btn-primary float-left" href="{{ url_for('edit_profile', user_id=user.id) }}">Edit Profile</a>
+                </div>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </header>       
+{% include "footer.html" %}
+{% endblock %}
