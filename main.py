@@ -242,7 +242,7 @@ def show_post(post_id):
     #comments = Comment.query.filter_by(post_id=post_id).options(joinedload(Comment.author)).all()
     comments = Comment.query.filter_by(post_id=post_id).all()
     # Debugging: Print author emails
-    print([comment.author.email for comment in comments])
+    #print([comment.author.email for comment in comments])
 
     return render_template("post.html", post=requested_post, year=year, form=form, comments=comments, gravatar=gravatar)
 
@@ -327,7 +327,7 @@ def delete_comment(comment_id):
     db.session.delete(comment_to_delete)
     db.session.commit()
     comments = Comment.query.all()
-    print([comment.author.email for comment in comments])  # Check if author emails are available
+    #print([comment.author.email for comment in comments])  # Check if author emails are available
     comment_id = comment_to_delete.post_id
     return redirect(url_for('show_post', post_id=comment_id))
 
