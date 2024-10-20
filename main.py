@@ -6,9 +6,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
-from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 from flask_gravatar import Gravatar
-from forms import CreatePostForm, RegisterForm, LoginForm, EditProfileForm
+from forms import CreatePostForm, RegisterForm, LoginForm, EditProfileForm, CommentForm
 from flask_migrate import Migrate
 from datetime import datetime
 from flask_principal import Identity, AnonymousIdentity, identity_changed
@@ -32,6 +31,8 @@ login_manager.init_app(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30) #REMEMBER - To control session lifetime
+app.config['SQLALCHEMY_ECHO'] = True
+app.config['DEBUG'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -170,7 +171,8 @@ def register():
         )
         db.session.add(new_user)
         db.session.commit()
-        login_user(new_user)
+        flash("Registration successful!, please Log in below")
+        #login_user(new_user)
         return redirect(url_for('login'))
     return render_template("register.html", form=form, year=year, gravatar=gravatar)
 
@@ -179,23 +181,25 @@ def register():
 def login():
     year = datetime.now().year
     form = LoginForm()
-    if request.method == 'POST':
+    if form.validate_on_submit():  # Validates POST data correctly
         email = form.email.data
         password = form.password.data
-        print(email, password)
         user = User.query.filter_by(email=email).first()
+
         if not user:
             flash(f'{email} does not exist in our database, please try again or register.')
             return redirect(url_for('login'))
+
         if not check_password_hash(user.password, password):
             flash('Password incorrect, please try again.')
             return redirect(url_for('login'))
-        
+
         login_user(user)
         session.permanent = True
-        #identity_changed.send(app, identity=Identity(user.id))
         return redirect(url_for('get_all_posts'))
-    return render_template("login.html", form=form, year=year)
+
+    return render_template("login.html", form=form, year=year, gravatar=gravatar)
+
 
 
 @app.route('/logout')
@@ -251,13 +255,13 @@ def show_post(post_id):
 @app.route("/about")
 def about():
     year = datetime.now().year
-    return render_template("about.html", year=year)
+    return render_template("about.html", year=year, gravatar=gravatar)
 
 
 @app.route("/contact")
 def contact():
     year = datetime.now().year
-    return render_template("contact.html", year=year)
+    return render_template("contact.html", year=year, gravatar=gravatar)
 
 
 @app.route("/new-post", methods=["GET", "POST"])
@@ -342,46 +346,59 @@ def profile(user_id):
         return render_template('profile.html', user=user, gravatar=gravatar)
 
 
-#edit profile
 @app.route('/edit_profile/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 def edit_profile(user_id):
     user = db.session.get(User, user_id)
-    #form = EditProfileForm()
     year = datetime.now().year
-     # Fetch all users
-    users= User.query.all()
-    # Extract emails into a list
-    usernames = [user.username for user in users]
+
+    # Fetch all users except the current user
+    other_users = User.query.filter(User.id != user.id).all()
+
+    # Extract usernames of all other users
+    usernames = [u.username for u in other_users]
+
+    # Create form with current user data
     edit_user_form = EditProfileForm(
-        name = user.name,
-        email = user.email,
-        username = user.username,
-        password = None,
-        confirm_password = None
+        name=user.name,
+        email=user.email,
+        username=user.username,
+        password=None,
+        confirm_password=None
     )
+
     if request.method == "POST":
-        if edit_user_form.password.data != edit_user_form.confirm_password.data:
-            flash("Passwords don't match, please review")
-            return render_template("edit_profile.html", year=year, gravatar=gravatar, user=user, form=edit_user_form)
-        if edit_user_form.username.data in usernames and edit_user_form.username.data != user.username:
-            flash("Sorry, someone else in our database already has that username. Perhaps stick with your old one or try something new?")
+        if edit_user_form.username.data in usernames:
+            flash("Sorry, someone else in our database already has that username. Please choose a different one.")
             return render_template("edit_profile.html", year=year, gravatar=gravatar, user=user, form=edit_user_form)
         
-        ##save data to database if requirements are met
+        # Check if passwords were entered and if they match
+        if edit_user_form.password.data:
+            if edit_user_form.password.data != edit_user_form.confirm_password.data:
+                flash("Passwords don't match, please review")
+                return render_template("edit_profile.html", year=year, gravatar=gravatar, user=user, form=edit_user_form)
+            
+            # Only update the password if the user has entered a new one
+            user.password = generate_password_hash(edit_user_form.password.data, method='pbkdf2:sha256', salt_length=8)
+
+        # Update the rest of the fields
         user.name = edit_user_form.name.data.title()
         user.email = edit_user_form.email.data
-        user.password = generate_password_hash(edit_user_form.password.data, method='pbkdf2:sha256', salt_length=8)
         user.username = edit_user_form.username.data
+
+        # Save changes
         db.session.commit()
+        flash("Profile updated successfully!")
         return render_template("profile.html", year=year, gravatar=gravatar, user=user)
+
     return render_template("edit_profile.html", year=year, form=edit_user_form, gravatar=gravatar, user=user)
 
         
        
 
-with app.app_context():
-    db.create_all()
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html', gravatar=gravatar), 404
 
 
 
