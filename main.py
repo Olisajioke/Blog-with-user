@@ -261,7 +261,7 @@ def about():
 @app.route("/contact")
 def contact():
     year = datetime.now().year
-    return render_template("contact.html", year=year, gravatar=gravatar)
+    return render_template("thanks.html", year=year, gravatar=gravatar)
 
 
 @app.route("/new-post", methods=["GET", "POST"])
