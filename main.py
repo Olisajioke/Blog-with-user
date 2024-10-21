@@ -341,9 +341,9 @@ def delete_post(post_id):
     #post_to_delete = BlogPost.query.get(post_id)
     try:
         post_to_delete = db.session.get(BlogPost, post_id)
-        flash(f"Post {post_to_delete.title} has been deleted.")
         db.session.delete(post_to_delete)
         db.session.commit()
+        flash(f"Post {post_to_delete.title} has been deleted.")
     except Exception as e:
         print(e)
         flash("An error occurred while deleting your post, please try again.")
@@ -476,7 +476,7 @@ def handle_exception(e):
 
 
 if __name__ == "__main__":
-    #port = int(os.environ.get("PORT", 5000))  # Use environment variable PORT, default to 5000 if not set
-    #app.run(host='0.0.0.0', port=port)
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))  # Use environment variable PORT, default to 5000 if not set
+    app.run(host='0.0.0.0', port=port)
+    #app.run(debug=True)
 
