@@ -5,9 +5,9 @@
  */
 
 body {
-  font-size: 20px;
+  font-size: 20px !important;
   color: #212529;
-  font-family: 'Lora', 'Times New Roman', serif;
+  font-family: 'Lora', 'Times New Roman', serif !important;
 }
 
 p {
@@ -16,7 +16,7 @@ p {
 }
 
 p a {
-  text-decoration: underline;
+  text-decoration: underline !important;
 }
 
 h1,
@@ -26,7 +26,7 @@ h4,
 h5,
 h6 {
   font-weight: 800;
-  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
 }
 
 a {
@@ -46,7 +46,7 @@ blockquote {
 .section-heading {
   font-size: 36px;
   font-weight: 700;
-  margin-top: 60px;
+  margin-top: 60px !important;
 }
 
 .caption {
@@ -100,11 +100,11 @@ img::-moz-selection {
 }
 .titleBox {
     background-color:#fdfdfd;
-    padding:10px;
+    padding:10px !important;
 }
 .titleBox label{
   color:#444;
-  margin:0;
+  margin:0 !important;
   display:inline-block;
 }
 
@@ -175,7 +175,7 @@ img::-moz-selection {
 #mainNav .navbar-toggler {
   font-size: 12px;
   font-weight: 800;
-  padding: 13px;
+  padding: 13px !important;
   text-transform: uppercase;
   color: #343a40;
 }
@@ -183,28 +183,28 @@ img::-moz-selection {
 #mainNav .navbar-nav > li.nav-item > a {
   font-size: 12px;
   font-weight: 800;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
 }
 
 @media only screen and (min-width: 992px) {
   #mainNav {
-    border-bottom: 1px solid transparent;
+    border-bottom: 1px solid transparent !important;
     background: transparent;
   }
   #mainNav .navbar-brand {
-    padding: 10px 20px;
+    padding: 10px 20px !important;
     color: #fff;
   }
   #mainNav .navbar-brand:focus, #mainNav .navbar-brand:hover {
     color: rgba(255, 255, 255, 0.8);
   }
   #mainNav .navbar-nav > li.nav-item > a {
-    padding: 10px 20px;
-    color: #fff;
+    padding: 10px 20px !important;
+    color: #fff !important;
   }
   #mainNav .navbar-nav > li.nav-item > a:focus, #mainNav .navbar-nav > li.nav-item > a:hover {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.8) !important;
   }
 }
 
@@ -233,7 +233,7 @@ img::-moz-selection {
     color: #212529;
   }
   #mainNav.is-fixed .navbar-nav > li.nav-item > a:focus, #mainNav.is-fixed .navbar-nav > li.nav-item > a:hover {
-    color: #0085A1;
+    color: #0085A1 ;
   }
   #mainNav.is-visible {
     /* if the user changes the scrolling direction, we show the header */
@@ -483,3 +483,4 @@ footer .copyright {
   font-size: 16px;
   padding: 25px 35px;
 }
+

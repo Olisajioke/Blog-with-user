@@ -1,10 +1,12 @@
-
 {% include "header.html" %}
+{% extends "bootstrap/base.html" %}
 
-<head>
+
+{% block head %}
+    {{ super() }}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/403.css') }}">
     <title>403 - Access Denied</title>
-</head>
+{% endblock %}
 
 
 {% block content %}

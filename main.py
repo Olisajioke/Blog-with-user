@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 from flask_gravatar import Gravatar
-from forms import CreatePostForm, RegisterForm, LoginForm, EditProfileForm, CommentForm
+from forms import CreatePostForm, RegisterForm, LoginForm, EditProfileForm, CommentForm, SearchForm
 from flask_migrate import Migrate
 from datetime import datetime
 from flask_principal import Identity, AnonymousIdentity, identity_changed
@@ -31,8 +31,8 @@ login_manager.init_app(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30) #REMEMBER - To control session lifetime
-app.config['SQLALCHEMY_ECHO'] = True
-app.config['DEBUG'] = False
+app.config['SQLALCHEMY_ECHO'] = False
+app.config['DEBUG'] = True
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -135,9 +135,13 @@ def confirm_add(func):
 
 @app.route('/')
 def get_all_posts():
-    posts = BlogPost.query.all()
-    year = datetime.now().year
-    users = User.query.all()
+    try:
+        posts = BlogPost.query.all()
+        year = datetime.now().year
+        users = User.query.all()
+    except Exception as e:
+        print(e)
+        return render_template('404.html', gravatar=gravatar)
     return render_template("index.html", all_posts=posts, year=year, users=users, gravatar=gravatar)
 
 
@@ -154,26 +158,31 @@ def register():
     # Extract emails into a list
     usernames = [user.username for user in users]
     if form.validate_on_submit():
-        if User.query.filter_by(email=form.email.data).first():
-            flash("You've already signed up with that email, log in instead!")
+        try:
+            if User.query.filter_by(email=form.email.data).first():
+                flash("You've already signed up with that email, log in instead!")
+                return redirect(url_for('login'))
+            if form.username.data in usernames:
+                flash("Sorry, someone already has that username, please choose another one!")
+                return redirect(url_for('login'))
+            if form.password.data != form.confirm_password.data:
+                flash("Passwords don't match, please try again.")
+                return redirect(url_for('register'))
+            new_user = User(
+                email=form.email.data,
+                password=generate_password_hash(form.password.data, method='pbkdf2:sha256', salt_length=8),
+                name=(form.name.data).title(),
+                username = form.username.data
+            )
+            db.session.add(new_user)
+            db.session.commit()
+            flash("Registration successful!, please Log in below")
+            #login_user(new_user)
             return redirect(url_for('login'))
-        if form.username.data in usernames:
-            flash("Sorry, someone already has that username, please choose another one!")
-            return redirect(url_for('login'))
-        if form.password.data != form.confirm_password.data:
-            flash("Passwords don't match, please try again.")
+        except Exception as e:
+            print(e)
+            flash("An error occurred, please try again.")
             return redirect(url_for('register'))
-        new_user = User(
-            email=form.email.data,
-            password=generate_password_hash(form.password.data, method='pbkdf2:sha256', salt_length=8),
-            name=(form.name.data).title(),
-            username = form.username.data
-        )
-        db.session.add(new_user)
-        db.session.commit()
-        flash("Registration successful!, please Log in below")
-        #login_user(new_user)
-        return redirect(url_for('login'))
     return render_template("register.html", form=form, year=year, gravatar=gravatar)
 
 
@@ -182,22 +191,26 @@ def login():
     year = datetime.now().year
     form = LoginForm()
     if form.validate_on_submit():  # Validates POST data correctly
-        email = form.email.data
-        password = form.password.data
-        user = User.query.filter_by(email=email).first()
+        try:
+            email = form.email.data
+            password = form.password.data
+            user = User.query.filter_by(email=email).first()
 
-        if not user:
-            flash(f'{email} does not exist in our database, please try again or register.')
-            return redirect(url_for('login'))
+            if not user:
+                flash(f'{email} does not exist in our database, please try again or register.')
+                return redirect(url_for('login'))
 
-        if not check_password_hash(user.password, password):
-            flash('Password incorrect, please try again.')
-            return redirect(url_for('login'))
+            if not check_password_hash(user.password, password):
+                flash('Password incorrect, please try again.')
+                return redirect(url_for('login'))
 
-        login_user(user)
-        session.permanent = True
-        return redirect(url_for('get_all_posts'))
-
+            login_user(user)
+            db.session.commit()
+            session.permanent = True
+            return redirect(url_for('get_all_posts'))
+        except Exception as e:
+            print(e)
+            flash('Invalid credentials, please try again.')
     return render_template("login.html", form=form, year=year, gravatar=gravatar)
 
 
@@ -207,6 +220,7 @@ def login():
 def logout():
     logout_user()
     print(app.url_map)
+    db.session.commit()
     return redirect(url_for('get_all_posts'))
 
 
@@ -214,41 +228,44 @@ def logout():
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
 def show_post(post_id):
     form = CommentForm()
-    
-    # Check if post_id is provided as a query parameter (from another route)
-    retrieved_post = request.args.get('post_id')
-    if retrieved_post:
-        post_id = retrieved_post  # If query parameter exists, use it
+    try:
+        # Check if post_id is provided as a query parameter (from another route)
+        retrieved_post = request.args.get('post_id')
+        if retrieved_post:
+            post_id = retrieved_post  # If query parameter exists, use it
 
-    # Get the post using post_id (whether from URL or query parameter)
-    requested_post = db.session.get(BlogPost, post_id)
+        # Get the post using post_id (whether from URL or query parameter)
+        requested_post = db.session.get(BlogPost, post_id)
 
-    # Handle comment submission
-    if request.method == 'POST':
-        if not current_user.is_authenticated:
-            flash("You need to login or register to comment.")
-            return redirect(url_for('login'))
+        # Handle comment submission
+        if request.method == 'POST':
+            if not current_user.is_authenticated:
+                flash("You need to login or register to comment.")
+                return redirect(url_for('login'))
 
-        if form.validate_on_submit():
-            new_comment = Comment(
-                text=form.comment.data,
-                author_id=current_user.id,  # Set author_id correctly
-                post_id=post_id,
-                date=datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-            )
-            db.session.add(new_comment)
-            db.session.commit()
-            flash("Comment added successfully!")
-            return redirect(url_for('show_post', post_id=post_id))
+            if form.validate_on_submit():
+                new_comment = Comment(
+                    text=form.comment.data,
+                    author_id=current_user.id,  # Set author_id correctly
+                    post_id=post_id,
+                    date=datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+                )
+                db.session.add(new_comment)
+                db.session.commit()
+                flash("Comment added successfully!")
+                return redirect(url_for('show_post', post_id=post_id))
 
-    year = datetime.now().year
+        year = datetime.now().year
 
-    # Query comments and eagerly load the author relationship to avoid lazy loading issues
-    #comments = Comment.query.filter_by(post_id=post_id).options(joinedload(Comment.author)).all()
-    comments = Comment.query.filter_by(post_id=post_id).all()
-    # Debugging: Print author emails
-    #print([comment.author.email for comment in comments])
+        # Query comments and eagerly load the author relationship to avoid lazy loading issues
+        #comments = Comment.query.filter_by(post_id=post_id).options(joinedload(Comment.author)).all()
+        comments = Comment.query.filter_by(post_id=post_id).all()
+        # Debugging: Print author emails
+        #print([comment.author.email for comment in comments])
 
+    except Exception as e:
+        print(e)
+        return render_template('404.html', gravatar=gravatar)
     return render_template("post.html", post=requested_post, year=year, form=form, comments=comments, gravatar=gravatar)
 
 
@@ -256,12 +273,6 @@ def show_post(post_id):
 def about():
     year = datetime.now().year
     return render_template("about.html", year=year, gravatar=gravatar)
-
-
-@app.route("/contact")
-def contact():
-    year = datetime.now().year
-    return render_template("thanks.html", year=year, gravatar=gravatar)
 
 
 @app.route("/new-post", methods=["GET", "POST"])
@@ -272,17 +283,22 @@ def add_new_post():
     form = CreatePostForm()
     user = current_user
     if request.method == 'POST':
-        new_post = BlogPost(
-            title=form.title.data,
-            subtitle=form.subtitle.data,
-            body=form.body.data,
-            img_url=form.img_url.data,
-            author=current_user,
-            date=date.today().strftime("%B %d, %Y")
-        )
-        db.session.add(new_post)
-        db.session.commit()
-        return redirect(url_for("get_all_posts"))
+        try:
+            new_post = BlogPost(
+                title=form.title.data,
+                subtitle=form.subtitle.data,
+                body=form.body.data,
+                img_url=form.img_url.data,
+                author=current_user,
+                date=date.today().strftime("%B %d, %Y")
+            )
+            db.session.add(new_post)
+            db.session.commit()
+            return redirect(url_for("get_all_posts"))
+        except Exception as e:
+            print(e)
+            flash("An error occurred while adding your post, please try again.")
+            return redirect(url_for("add_new_post"))
     return render_template("make-post.html", form=form, year=year, user=user, gravatar=gravatar)
 
 
@@ -302,13 +318,18 @@ def edit_post(post_id):
         body=post.body
     )
     if edit_form.validate_on_submit():
-        post.title = edit_form.title.data
-        post.subtitle = edit_form.subtitle.data
-        post.img_url = edit_form.img_url.data
-        post.author = post.author
-        post.body = edit_form.body.data
-        db.session.commit()
-        return redirect(url_for("show_post", post_id=post.id))
+        try:
+            post.title = edit_form.title.data
+            post.subtitle = edit_form.subtitle.data
+            post.img_url = edit_form.img_url.data
+            post.author = post.author
+            post.body = edit_form.body.data
+            db.session.commit()
+            return redirect(url_for("show_post", post_id=post.id))
+        except Exception as e:
+            print(e)
+            flash("An error occurred while editing your post, please try again.")
+            return redirect(url_for("edit_post", post_id=post.id))
 
     return render_template("make-post.html", form=edit_form, year=year, gravatar=gravatar, user=user)
 
@@ -318,22 +339,31 @@ def edit_post(post_id):
 @confirm_admin
 def delete_post(post_id):
     #post_to_delete = BlogPost.query.get(post_id)
-    post_to_delete = db.session.get(BlogPost, post_id)
-    flash(f"Post {post_to_delete.title} has been deleted.")
-    db.session.delete(post_to_delete)
-    db.session.commit()
+    try:
+        post_to_delete = db.session.get(BlogPost, post_id)
+        flash(f"Post {post_to_delete.title} has been deleted.")
+        db.session.delete(post_to_delete)
+        db.session.commit()
+    except Exception as e:
+        print(e)
+        flash("An error occurred while deleting your post, please try again.")
     return redirect(url_for('get_all_posts'))
 
 
 #delete comment
 @app.route("/delete-comment/<int:comment_id>", methods=["GET", "POST"])
 def delete_comment(comment_id):
-    comment_to_delete = db.session.get(Comment, comment_id)
-    db.session.delete(comment_to_delete)
-    db.session.commit()
-    comments = Comment.query.all()
-    #print([comment.author.email for comment in comments])  # Check if author emails are available
-    comment_id = comment_to_delete.post_id
+    try:
+        comment_to_delete = db.session.get(Comment, comment_id)
+        db.session.delete(comment_to_delete)
+        db.session.commit()
+        comments = Comment.query.all()
+        #print([comment.author.email for comment in comments])  # Check if author emails are available
+        comment_id = comment_to_delete.post_id
+        flash("Comment deleted successfully!")
+    except Exception as e:
+        print(e)
+        flash("An error occurred while deleting your comment, please try again.")
     return redirect(url_for('show_post', post_id=comment_id))
 
 
@@ -342,8 +372,13 @@ def delete_comment(comment_id):
 @login_required
 def profile(user_id):
     if request.method == 'GET':
-        user =  user = db.session.get(User, user_id)
-        return render_template('profile.html', user=user, gravatar=gravatar)
+        try:
+            year = datetime.now().year
+            user =  user = db.session.get(User, user_id)
+        except Exception as e:
+            print(e)
+            return render_template('404.html', gravatar=gravatar, year=year)
+        return render_template('profile.html', user=user, gravatar=gravatar, year=year)
 
 
 @app.route('/edit_profile/<int:user_id>', methods=['GET', 'POST'])
@@ -368,28 +403,33 @@ def edit_profile(user_id):
     )
 
     if request.method == "POST":
-        if edit_user_form.username.data in usernames:
-            flash("Sorry, someone else in our database already has that username. Please choose a different one.")
-            return render_template("edit_profile.html", year=year, gravatar=gravatar, user=user, form=edit_user_form)
-        
-        # Check if passwords were entered and if they match
-        if edit_user_form.password.data:
-            if edit_user_form.password.data != edit_user_form.confirm_password.data:
-                flash("Passwords don't match, please review")
+        try:
+            if edit_user_form.username.data in usernames:
+                flash("Sorry, someone else in our database already has that username. Please choose a different one.")
                 return render_template("edit_profile.html", year=year, gravatar=gravatar, user=user, form=edit_user_form)
             
-            # Only update the password if the user has entered a new one
-            user.password = generate_password_hash(edit_user_form.password.data, method='pbkdf2:sha256', salt_length=8)
+            # Check if passwords were entered and if they match
+            if edit_user_form.password.data:
+                if edit_user_form.password.data != edit_user_form.confirm_password.data:
+                    flash("Passwords don't match, please review")
+                    return render_template("edit_profile.html", year=year, gravatar=gravatar, user=user, form=edit_user_form)
+                
+                # Only update the password if the user has entered a new one
+                user.password = generate_password_hash(edit_user_form.password.data, method='pbkdf2:sha256', salt_length=8)
 
-        # Update the rest of the fields
-        user.name = edit_user_form.name.data.title()
-        user.email = edit_user_form.email.data
-        user.username = edit_user_form.username.data
+            # Update the rest of the fields
+            user.name = edit_user_form.name.data.title()
+            user.email = edit_user_form.email.data
+            user.username = edit_user_form.username.data
 
-        # Save changes
-        db.session.commit()
-        flash("Profile updated successfully!")
-        return render_template("profile.html", year=year, gravatar=gravatar, user=user)
+            # Save changes
+            db.session.commit()
+            flash("Profile updated successfully!")
+            return render_template("profile.html", year=year, gravatar=gravatar, user=user)
+        except Exception as e:
+            print(e)
+            flash("An error occurred while updating your profile, please try again.")
+            return render_template("edit_profile.html", year=year, gravatar=gravatar, user=user, form=edit_user_form)
 
     return render_template("edit_profile.html", year=year, form=edit_user_form, gravatar=gravatar, user=user)
 
@@ -401,8 +441,42 @@ def page_not_found(e):
     return render_template('404.html', gravatar=gravatar), 404
 
 
+@app.route('/search_review', methods=['GET', 'POST'])
+@login_required
+def search_review():
+    form = SearchForm()
+    year = datetime.now().year
+    
+    posts = []  # Initialize posts as an empty list
+    if request.method == "POST":
+        try:
+            search_term = form.search.data # Get and clean the search term
+            # Query the database for posts where the title contains the search term
+            posts = BlogPost.query.filter(BlogPost.title.ilike(f"%{search_term}%")).all()
+        except Exception as e:
+            print(e)
+            flash("An error occurred while searching, please try again.")
+            return redirect(url_for('search_review'))
+    return render_template('search.html', posts=posts, form=form, gravatar=gravatar, year=year)
+
+
+@app.route("/contact")
+def contact():
+    year = datetime.now().year
+    return render_template("contact.html", year=year, gravatar=gravatar)
+
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    print(f"An error occurred: {e}")
+    return render_template('500.html'), 500  # Create a custom 500 error page
+
+
+
+
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Use environment variable PORT, default to 5000 if not set
-    app.run(host='0.0.0.0', port=port)
+    #port = int(os.environ.get("PORT", 5000))  # Use environment variable PORT, default to 5000 if not set
+    #app.run(host='0.0.0.0', port=port)
+    app.run(debug=True)
 

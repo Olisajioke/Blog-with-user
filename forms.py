@@ -39,3 +39,7 @@ class EditProfileForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
     username = StringField("Username", validators=[DataRequired()])
     submit = SubmitField("Sign Me Up!")
+
+class SearchForm(FlaskForm):
+    search = StringField("Search", validators=[DataRequired()])
+    submit = SubmitField("Search")

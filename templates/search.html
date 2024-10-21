@@ -1,0 +1,62 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block head %}
+    {{ super() }}
+    <title>Mazi Whistletown's Blog</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+{% endblock %}
+
+{% block content %}
+{% include "header.html" %} <!-- Including header.html inside the content block -->
+
+<!-- Page Header -->
+<header class="masthead" style="background-image: url('https://images.unsplash.com/photo-1729008920276-e9e61d13c2db?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxMDR8fHxlbnwwfHx8fHw%3D')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="site-heading">
+                    <h1>Related Posts</h1>
+                    <h2><span>Dive in😉</span></h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                {% if posts %}
+                    {% for post in posts %}
+                        <div class="post-preview mb-4">
+                            <a href="{{ url_for('show_post', post_id=post.id) }}">
+                                <!-- Movie or Blog Poster -->
+                                <div class="post-poster">
+                                    <img src="{{ post.img_url }}" alt="Poster for {{ post.title }}" class="floating-poster">
+                                </div>
+                                <h2 class="post-title"><strong>{{ post.title }}</strong></h2>
+                                <h3 class="post-subtitle">{{ post.subtitle }}</h3>
+                            </a>
+                            <p class="post-meta">
+                                Posted by <a href="#">{{ post.author.name }}</a> on {{ post.date }}
+                                <a class="btn btn-primary float-right" href="{{ url_for('show_post', post_id=post.id) }}">Read Full Post</a>
+                            </p>
+                        </div>
+                        <hr>
+                    {% endfor %}
+                {% else %}
+                    <h2>No posts found with that name.</h2>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+{% include "footer.html" %} <!-- Including footer.html inside the content block -->
+{% endblock %}

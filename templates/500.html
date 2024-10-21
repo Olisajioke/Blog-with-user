@@ -1,18 +1,21 @@
 {% include "header.html" %}
+{% extends "bootstrap/base.html" %}
 
-<head>
+
+{% block head %}
+    {{ super() }}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/403.css') }}">
     <title>403 - Access Denied</title>
-</head>
+{% endblock %}
 
 
 {% block content %}
     <div class="jumbotron text-center">
         <div class="row">
             <div class="col-lg-8 col-md-10 mx-auto">
-                <h1>403</h1>
-                <h2>Access Denied</h2>
-                <p>Sorry, you don't have permission to access this page.</p>
+                <h1>500</h1>
+                <h2>ERROR</h2>
+                <p>Dearest Gentle Reader,<br/> this Author is sorry because the server is malfunctionating. Please try again in a few seconds.</p>
             </div>
         </div>
     </div>

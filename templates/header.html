@@ -9,6 +9,10 @@
   <meta name="author" content="">
 
   <title>Whistletown's Blog</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="../favicon_io/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon_io/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon_io/favicon-16x16.png">
+  <link rel="manifest" href="../favicon_io/site.webmanifest">
 
   <!-- Bootstrap core CSS -->
   <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
@@ -26,58 +30,57 @@
 </head>
 
 <body>
-
-  <!-- Navigation -->
   <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
     <div class="container">
-      <a class="navbar-brand" href="{{url_for('get_all_posts')}}">Mazi Whistletown's Blog</a>
-      <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-        Menu
-        <i class="fas fa-bars"></i>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarResponsive">
-        {% if current_user.is_authenticated %}
-          <ul class="navbar-nav ml-auto">
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('profile', user_id=current_user.id) }}" style="text-align: center; display: flex; align-items: center;">
-                <img src="https://img.icons8.com/ios/50/000000/user.png" alt="Profile Image" class="rounded-circle" style="width: 30px; height: 30px; margin-right: 10px; filter: brightness(0) invert(1);">
-                <span>Logged in as {{ current_user.username }}</span>
-              </a>
-            </li>            
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('get_all_posts') }}">Home</a>
-            </li>
-
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('logout') }}">Log Out</a>
-            </li>
-
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('about') }}">About</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('contact') }}">Contact</a>
-            </li>
-          {% else %}
-            <ul class="navbar-nav ml-auto">
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('get_all_posts') }}">Home</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('login') }}">Login</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('register') }}">Register</a>
-              </li>
-
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('about') }}">About</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('contact') }}">Contact</a>
-              </li>
-          {% endif %}
-          </ul>
-      </div>
+        <a class="navbar-brand" href="{{ url_for('get_all_posts') }}">Mazi Whistletown's Blog</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ml-auto align-items-center">
+                {% if current_user.is_authenticated %}
+                <!-- User Dropdown -->
+                <li class="nav-item dropdown">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#" aria-expanded="false">
+                        <b class="fa fa-user"></b>
+                        <span>&nbsp;&nbsp;Welcome {{ current_user.username }}.</span>
+                        <b class="caret"></b>
+                    </a>
+                    <ul class="dropdown-menu animated fadeInRightBig">
+                        <li><a href="{{ url_for('profile', user_id=current_user.id) }}"><i class="fa fa-fw fa-user-circle nav-link"></i>  PROFILE</a></li>
+                        <li><a href="{{ url_for('edit_profile', user_id=current_user.id) }}"><i class="fa fa-fw fa-key nav-link"></i>  EDIT PROFILE</a></li>
+                        <li><a href="{{ url_for('get_all_posts') }}"><i class="fa fa-fw fa-home nav-link"></i>  HOME</a></li>
+                        <li><a href="{{ url_for('contact') }}"><i class="fa fa-fw fa-phone nav-link"></i>  CONTACT</a></li>
+                        <li><a href="{{ url_for('about') }}"><i class="fa fa-fw fa-info-circle nav-link"></i>  ABOUT</a></li>
+                        <li class="divider"></li>
+                        <li><a href="{{ url_for('logout') }}"><i class="fa fa-fw fa-power-off nav-link"></i>  LOGOUT</a></li>
+                    </ul>
+                </li>
+                <!-- Search Form -->
+                <li class="nav-item">
+                    <form class="form-inline my-2 my-lg-0" action="{{ url_for('search_review') }}" method="POST">
+                        <input class="form-control mr-sm-2" type="search" placeholder="Find A Review" aria-label="Search" name="search" style="width: 150px;">
+                        <button class="btn btn-primary btn-sm my-2 my-sm-0" type="submit" style="padding: 3px 10px;">Search</button>
+                    </form>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('get_all_posts') }}">HOME</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('login') }}">LOGIN</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('register') }}">REGISTER</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('about') }}">ABOUT</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('contact') }}">CONTACT</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
     </div>
-  </nav>
+</nav>

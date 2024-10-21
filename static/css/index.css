@@ -1,0 +1,21 @@
+/* Floating poster container */
+.post-poster {
+    float: left;
+    margin-right: 15px;
+    margin-bottom: 10px;
+}
+
+/* Poster image with hover effect */
+.floating-poster {
+    width: 100px; /* Fixed width */
+    height: 150px; /* Fixed height for consistency */
+    border-radius: 8px;
+    object-fit: cover; /* Ensures the image covers the box while maintaining aspect ratio */
+    transition: transform 0.3s ease; /* Hover effect transition */
+}
+
+/* Enlarge on hover with shadow */
+.floating-poster:hover {
+    transform: scale(2.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
