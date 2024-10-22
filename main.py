@@ -190,11 +190,12 @@ def register():
 def login():
     year = datetime.now().year
     form = LoginForm()
-    if form.validate_on_submit():  # Validates POST data correctly
+    if request.method == 'POST':  # Validates POST data correctly
         try:
             email = form.email.data
             password = form.password.data
             user = User.query.filter_by(email=email).first()
+            print(user)
 
             if not user:
                 flash(f'{email} does not exist in our database, please try again or register.')
@@ -442,11 +443,10 @@ def page_not_found(e):
 
 
 @app.route('/search_review', methods=['GET', 'POST'])
-@login_required
 def search_review():
     form = SearchForm()
     year = datetime.now().year
-    
+    search = form.search.data
     posts = []  # Initialize posts as an empty list
     if request.method == "POST":
         try:
@@ -457,7 +457,7 @@ def search_review():
             print(e)
             flash("An error occurred while searching, please try again.")
             return redirect(url_for('search_review'))
-    return render_template('search.html', posts=posts, form=form, gravatar=gravatar, year=year)
+    return render_template('search.html', posts=posts, form=form, gravatar=gravatar, year=year, search=search)
 
 
 @app.route("/contact")

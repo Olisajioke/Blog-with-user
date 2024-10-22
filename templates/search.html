@@ -15,12 +15,21 @@
     <div class="overlay"></div>
     <div class="container">
         <div class="row">
-            <div class="col-lg-8 col-md-10 mx-auto">
-                <div class="site-heading">
-                    <h1>Related Posts</h1>
-                    <h2><span>Dive in😉</span></h2>
+            {% if search %}
+                <div class="col-lg-8 col-md-10 mx-auto">
+                    <div class="site-heading">
+                        <h1>Search Results for "{{ search }}"</h1>
+                        <h2><span>Here are the results we found for you 😊</span></h2>
+                    </div>
                 </div>
-            </div>
+            {% else %}
+                <div class="col-lg-8 col-md-10 mx-auto">
+                    <div class="site-heading">
+                        <h1>No Posts With Such Name</h1>
+                        <h2><span>Perhaps, review the search term and try again 😉</span></h2>
+                    </div> <!-- Closed properly here -->
+                </div>
+            {% endif %}
         </div>
     </div>
 </header>

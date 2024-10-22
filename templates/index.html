@@ -27,6 +27,18 @@
 <div class="container">
     <div class="row">
         <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="form-group">
+                <form class="form-inline my-3 my-lg-0" action="{{ url_for('search_review') }}" method="POST">
+                    <input class="form-control mr-sm-2" type="search" placeholder="Find A Review" aria-label="Search" name="search" 
+                    style="width: 250px; border-radius: 20px; padding: 8px 15px; border: 1px solid #ccc; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+                    <button class="btn btn-primary btn-sm my-2 my-sm-0" type="submit" 
+                    style="padding: 7px 17px; border-radius: 20px; background-color: #007bff; border: none; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); transition: all 0.3s;">
+                        Search
+                    </button>
+                </form>
+            </div>            
+            <hr/>
+            <!-- Post Preview -->
             {% for post in all_posts %}
                 <div class="post-preview">
                     <a href="{{ url_for('show_post', post_id=post.id) }}">
