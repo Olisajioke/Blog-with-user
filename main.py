@@ -527,9 +527,25 @@ def movie_review(post_id):
     post_d = request.args.get('post_id')
     if post_d:
         post_id = post_d
+    if request.method == 'POST':
+        if not current_user.is_authenticated:
+            flash("You need to login or register to comment.")
+            return redirect(url_for('login'))
+        if form.validate_on_submit():
+            new_comment = Comment(
+                text=form.comment.data,
+                author_id=current_user.id,
+                post_id=post_id,
+                date=datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+            )
+            db.session.add(new_comment)
+            db.session.commit()
+            flash("Comment added successfully!")
+            return redirect(url_for('movie_review', post_id=post_id))
     post = db.session.get(BlogPost, post_id)
+    comments = Comment.query.filter_by(post_id=post_id).all()
     year = datetime.now().year
-    return render_template('show_movie_review.html', post=post, year=year, gravatar=gravatar, form=form)
+    return render_template('show_movie_review.html', post=post, year=year, comments=comments, gravatar=gravatar, form=form)
 
 #review page
 @app.route("/add_movie_review", methods=["GET", "POST"])
@@ -537,6 +553,7 @@ def movie_review(post_id):
 def add_movie_review():
     year = datetime.now().year
     form = CreatePostForm()
+    comment = CommentForm()
     user = current_user
     if request.method == 'POST':
         try:
@@ -598,7 +615,7 @@ def delete_profile(user_id):
 
 
 if __name__ == "__main__":
-    #port = int(os.environ.get("PORT", 5000))  # Use environment variable PORT, default to 5000 if not set
-    #app.run(host='0.0.0.0', port=port)
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))  # Use environment variable PORT, default to 5000 if not set
+    app.run(host='0.0.0.0', port=port)
+    #app.run(debug=True)
 
