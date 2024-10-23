@@ -1,0 +1,97 @@
+.search-container {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    height: 80vh; /* Full viewport height for vertical centering */
+}
+
+.searchform__inputContainer {
+    position: relative; /* Position relative for absolute positioning of the button */
+    max-width: 400px; /* Set a maximum width for the search input */
+    width: 100%; /* Full width for smaller screens */
+    height: 38px; /* Match the height of your button */
+}
+
+.whistletownblog-header-search__input {
+    margin-top: 5px; /* Align to the top */
+    width: 100%; /* Make the input take full width of its container */
+    padding: 0 40px 0 10px; /* Adjust padding to maintain height */
+    border-radius: 5px; /* Rounded corners */
+    border: 1px solid #ccc; /* Border style */
+    box-sizing: border-box; /* Include padding and border in width */
+    height: 100%; /* Set input height to fill the container */
+}
+
+.search-button {
+    position: absolute; /* Positioning the button absolutely within the container */
+    right: 10px; /* Position it slightly inside the input field */
+    top: 50%; /* Center vertically */
+    transform: translateY(-50%); /* Adjust for vertical centering */
+    background: none; /* Remove background */
+    border: none; /* Remove default border */
+    color: #007bff; /* Icon color */
+    font-size: 16px; /* Size of the magnifying glass icon */
+    cursor: pointer; /* Pointer cursor on hover */
+    padding: 0; /* No padding */
+}
+
+.search-button:hover {
+    color: #0056b3; /* Darker shade on hover */
+}
+
+
+
+.gradient-background {
+    background: linear-gradient(300deg, #b9d0d8, #f0ebec, #eeeceb);
+    background-size: 180% 180%;
+    animation: gradient-animation 18s ease infinite;
+  }
+  
+  @keyframes gradient-animation {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+
+
+  .gold {
+    color: gold;
+}
+
+.head-gradient {
+    background: linear-gradient(300deg, #eef113, #ff4c68, #ef8172) !important;
+    background-size: 180% 180%;
+    animation: gradient-animation 18s ease infinite;
+    text-align: center !important;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+@keyframes gradient-animation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.gold {
+    color: gold;
+}
+
+mast-head {
+    background-image: url('https://th.bing.com/th/id/R.4dc0070959847fc1b4d233e2cf1b6172?rik=ojagOOUiScvuVw&pid=ImgRaw&r=0') !important;
+    display: flex;
+    animation: gradient-animation 18s ease infinite; /* Added animation to masthead */
+}
+

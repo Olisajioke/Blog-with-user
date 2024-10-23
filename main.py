@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 from flask_gravatar import Gravatar
-from forms import CreatePostForm, RegisterForm, LoginForm, EditProfileForm, CommentForm, SearchForm
+from forms import CreatePostForm, RegisterForm, LoginForm, EditProfileForm, CommentForm, SearchForm, SearchGenre
 from flask_migrate import Migrate
 from datetime import datetime
 from flask_principal import Identity, AnonymousIdentity, identity_changed
@@ -55,19 +55,22 @@ ROLES = {
 }
 
 ##CONFIGURE TABLES
-
 class BlogPost(db.Model):
     """Create a BlogPost table"""
     __tablename__ = "blog_posts"
     id = db.Column(db.Integer, primary_key=True)
     author = relationship("User", back_populates="posts")
-    author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False) #relationship to the User table
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Relationship to the User table
     title = db.Column(db.String(250), unique=True, nullable=False)
     subtitle = db.Column(db.String(250), nullable=False)
     date = db.Column(db.String(250), nullable=False)
     body = db.Column(db.Text, nullable=False)
     img_url = db.Column(db.String(250), nullable=False)
+    genre = db.Column(db.String(100), default="unknown genre", nullable=False)  # New column for genre (e.g., "Comedy", "Blog Post", etc.)
+    rating = db.Column(db.Integer, nullable=True, default=0)  # New Rating field (0 to 10)
+    duration = db.Column(db.String(250), nullable=True, default='0h 0m')  # New Duration field (e.g., "2h 30m")
     comments = relationship("Comment", back_populates="post")  # Relationship to comments
+
 
 
 class User(UserMixin, db.Model):
@@ -219,8 +222,9 @@ def login():
 @app.route('/logout')
 @login_required
 def logout():
+    """logs out the user"""
     logout_user()
-    print(app.url_map)
+    #print(app.url_map)
     db.session.commit()
     return redirect(url_for('get_all_posts'))
 
@@ -272,6 +276,7 @@ def show_post(post_id):
 
 @app.route("/about")
 def about():
+    """about the blog"""
     year = datetime.now().year
     return render_template("about.html", year=year, gravatar=gravatar)
 
@@ -291,7 +296,10 @@ def add_new_post():
                 body=form.body.data,
                 img_url=form.img_url.data,
                 author=current_user,
-                date=date.today().strftime("%B %d, %Y")
+                date=date.today().strftime("%B %d, %Y"),
+                rating=form.rating.data,
+                genre=form.genre.data,
+                duration=form.duration.data
             )
             db.session.add(new_post)
             db.session.commit()
@@ -316,7 +324,10 @@ def edit_post(post_id):
         subtitle=post.subtitle,
         img_url=post.img_url,
         author=post.author,
-        body=post.body
+        body=post.body,
+        rating=post.rating,
+        genre=post.genre,
+        duration=post.duration
     )
     if edit_form.validate_on_submit():
         try:
@@ -325,6 +336,9 @@ def edit_post(post_id):
             post.img_url = edit_form.img_url.data
             post.author = post.author
             post.body = edit_form.body.data
+            post.rating = edit_form.rating.data
+            post.genre = edit_form.genre.data
+            post.duration = edit_form.duration.data
             db.session.commit()
             return redirect(url_for("show_post", post_id=post.id))
         except Exception as e:
@@ -340,19 +354,21 @@ def edit_post(post_id):
 @confirm_admin
 def delete_post(post_id):
     #post_to_delete = BlogPost.query.get(post_id)
-    try:
-        post_to_delete = db.session.get(BlogPost, post_id)
-        db.session.delete(post_to_delete)
-        db.session.commit()
-        flash(f"Post {post_to_delete.title} has been deleted.")
-    except Exception as e:
-        print(e)
-        flash("An error occurred while deleting your post, please try again.")
+    if request.method == 'POST':
+        try:
+            post_to_delete = db.session.get(BlogPost, post_id)
+            db.session.delete(post_to_delete)
+            db.session.commit()
+            flash(f"Post {post_to_delete.title} has been deleted.")
+        except Exception as e:
+            print(e)
+            flash("An error occurred while deleting your post, please try again.")
     return redirect(url_for('get_all_posts'))
 
 
 #delete comment
 @app.route("/delete-comment/<int:comment_id>", methods=["GET", "POST"])
+@login_required
 def delete_comment(comment_id):
     try:
         comment_to_delete = db.session.get(Comment, comment_id)
@@ -439,16 +455,21 @@ def edit_profile(user_id):
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('404.html', gravatar=gravatar), 404
+    """handles 404 errors"""
+    year = datetime.now().year
+    return render_template('404.html', gravatar=gravatar, year=year), 404
 
 
 @app.route('/search_review', methods=['GET', 'POST'])
 def search_review():
+    """Handles the search page for reviews"""
     form = SearchForm()
     year = datetime.now().year
-    search = form.search.data
+    
     posts = []  # Initialize posts as an empty list
     if request.method == "POST":
+        search = form.search.data
+        print(search)
         try:
             search_term = form.search.data # Get and clean the search term
             # Query the database for posts where the title contains the search term
@@ -462,21 +483,122 @@ def search_review():
 
 @app.route("/contact")
 def contact():
+    """Handles the contact page"""
     year = datetime.now().year
     return render_template("contact.html", year=year, gravatar=gravatar)
 
 
 @app.errorhandler(Exception)
 def handle_exception(e):
+    """HANDLES ALL EXCEPTIONS"""
     print(f"An error occurred: {e}")
-    return render_template('500.html'), 500  # Create a custom 500 error page
+    return render_template('500.html', error=e), 500  # Create a custom 500 error page
 
 
 
+#show all movie genres
+
+@app.route('/movie_genre', methods=['GET', 'POST'])
+@login_required
+def movie_genre():
+    """Displays all posts with a specific genre"""
+    form = SearchGenre()
+    posts = None
+    year = datetime.now().year  # Initialize year outside the try block for clarity
+
+    if request.method == 'POST':
+        try:
+            genre = request.form['genre']
+            posts = BlogPost.query.filter_by(genre=genre).all()
+            if not posts:
+                flash(f"No movies found for genre: {genre}. Please try another genre.")
+                return redirect(url_for('movie_genre'))
+        except Exception as e:
+            print(e)
+            return render_template('404.html', gravatar=gravatar, year=year, user=current_user)
+
+    return render_template('genre_search.html', genres=posts, year=year, gravatar=gravatar, form=form, user=current_user)
+
+
+
+@app.route('/movie_review/<int:post_id>', methods=['GET', 'POST'])
+def movie_review(post_id):
+    form = CommentForm()
+    post_d = request.args.get('post_id')
+    if post_d:
+        post_id = post_d
+    post = db.session.get(BlogPost, post_id)
+    year = datetime.now().year
+    return render_template('show_movie_review.html', post=post, year=year, gravatar=gravatar, form=form)
+
+#review page
+@app.route("/add_movie_review", methods=["GET", "POST"])
+@login_required
+def add_movie_review():
+    year = datetime.now().year
+    form = CreatePostForm()
+    user = current_user
+    if request.method == 'POST':
+        try:
+            new_post = BlogPost(
+                title=form.title.data,
+                subtitle=form.subtitle.data,
+                body=form.body.data,
+                img_url=form.img_url.data,
+                author=current_user,
+                date=date.today().strftime("%B %d, %Y"),
+                rating=form.rating.data,
+                genre=form.genre.data,
+                duration=form.duration.data
+            )
+            db.session.add(new_post)
+            db.session.commit()
+            movie_id = new_post.id
+            return redirect(url_for("show_movie_review", post_id=movie_id))
+        except Exception as e:
+            print(e)
+            #flash("An error occurred while adding your post, please try again.")
+            return redirect(url_for("add_movie_review"))
+    return render_template("add_movie_review.html", form=form, year=year, user=user, gravatar=gravatar)
+
+
+#confirm delete page
+@app.route("/confirm_delete/<int:post_id>", methods=["GET", "POST"])
+@login_required
+def confirm_delete(post_id):
+    post = db.session.get(BlogPost, post_id)
+    year = datetime.now().year
+    return render_template('confirm_delete.html', post=post, gravatar=gravatar, year=year)
+
+
+
+#confirm delete user
+@app.route("/confirm_delete_user/<int:user_id>", methods=["GET", "POST"])
+@login_required
+def confirm_delete_profile(user_id):
+    user = db.session.get(User, user_id)
+    year = datetime.now().year
+    return render_template('delete_profile.html', user=user, gravatar=gravatar, year=year)
+
+
+#delete user profile
+@app.route("/delete_user/<int:user_id>", methods=["GET", "POST"])
+@login_required
+def delete_profile(user_id):
+    if request.method == 'POST':
+        try:
+            user_to_delete = db.session.get(User, user_id)
+            db.session.delete(user_to_delete)
+            db.session.commit()
+            #flash(f"User {user_to_delete.name} has been deleted.")
+        except Exception as e:
+            print(e)
+            flash("An error occurred while deleting your profile, please try again.")
+        return redirect(url_for('get_all_posts'))
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Use environment variable PORT, default to 5000 if not set
-    app.run(host='0.0.0.0', port=port)
-    #app.run(debug=True)
+    #port = int(os.environ.get("PORT", 5000))  # Use environment variable PORT, default to 5000 if not set
+    #app.run(host='0.0.0.0', port=port)
+    app.run(debug=True)
 

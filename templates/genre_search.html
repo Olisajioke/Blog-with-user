@@ -1,0 +1,109 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+
+{% block head %}
+    {{ super() }}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+{% endblock %}
+    
+
+{% block styles %}
+  {{ super() }}
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito+Sans:300,400,700">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,700">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/genre.css') }}">
+{% endblock %}
+
+{% block title %}My Top 10 Movies{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-md-10 mx-auto">
+        <hr/>
+        <h1 class="title"><strong>MOVIE REVIEWS</strong></h1>
+        <p class="subtitle">Read people's thoughts on trending movies and older ones.</p>
+        <hr/>
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul class="flashes">
+              {% for message in messages %}
+                <li><strong>{{ message }}</strong></li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        
+        {% if genres %}
+          <!-- Search Bar -->
+          <h2><strong>Search For A Genre</strong></h2>
+          <form method="POST" action="{{ url_for('movie_genre') }}">
+            {{ form.csrf_token }}
+            {{ wtf.quick_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+          </form>
+          <hr/>
+        {% endif %}
+        
+    <!--MAIN BODY-->
+        <div class="container">
+          {% if genres %}
+            {% for post in genres %}
+              <div class="card">
+                <div class="front" style="background-image: url('{{ post.img_url }}');">
+                  <p class="large">{{ post.title }}</p>
+                </div>
+                <div class="back">
+                  <div>
+                    <div class="title"> By {{ post.author.name }} <span class="release_date"> on ({{ post.date }})</span></div>
+                    <div class="rating">
+                      <label>{{ post.rating }}</label>
+                      <i class="fas fa-star star"></i>
+                    </div>
+                    <p class="review">{{ post.duration }} minutes Read</p>
+                    <p class="overview">"{{ post.subtitle }}"</p>
+                    <a href="{{ url_for('movie_review', post_id=post.id) }}" class="button">Read Review</a>
+                    {% if current_user.id == 1 or current_user.id == 3 %}
+                      <a href="{{ url_for('confirm_delete', post_id=post.id) }}" class="button delete-button">Delete Review</a>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <hr/>
+            <h2><strong>Search For A Genre</strong></h2>
+            <!-- Form for searching genres -->
+            <form method="POST" action="{{ url_for('movie_genre') }}">
+              {{ form.csrf_token }}
+              {{ wtf.quick_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+            </form>
+          {% endif %}
+          <div class="clearfix">
+            <a class="btn btn-primary float-center" href="{{ url_for('get_all_posts') }}">Go to Homepage</a>
+            <a class="btn btn-primary float-center" href="{{ url_for('add_movie_review') }}">Review A Movie</a>
+          </div>  
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer text-center">
+    <p>Copyright © Mazi Whistletown {{ year }}</p>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/js/all.min.js"></script>
+  <script src="{{ url_for('static', filename='js/genre.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,60 @@
+.jumbotron {
+    background-color: skyblue !important;
+    font-family: 'Arial', sans-serif;
+    padding: 20px;
+    min-height: 100vh; /* Ensures the content takes up at least 80% of the viewport height */
+}
+
+/* Add a wrapper to center the search content */
+.content-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh; /* Center only the content inside this section */
+    text-wrap: nowrap;
+}
+
+.genre-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.genre-list li {
+    margin: 10px 0;
+    font-size: 1.2em;
+}
+
+.genre-list a {
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+    padding: 10px 20px;
+    background-color: #007bff;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.genre-list a:hover {
+    background-color: #0056b3;
+}
+
+
+.head-gradient {
+    background: linear-gradient(300deg, #FF5733, #C70039, #900C3F) !important;
+    background-size: 180% 180%;
+    animation: gradient-animation 18s ease infinite;
+  }
+  
+  @keyframes gradient-animation {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }

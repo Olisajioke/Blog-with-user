@@ -16,11 +16,18 @@
 
   <!-- Bootstrap core CSS -->
   <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <!-- Custom css for this template -->
+    <link href="{{ url_for('static', filename='css/header.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/footer.css') }}" rel="stylesheet">
+    {% block head %}
+    
+    {% endblock %}
 
   <!-- Custom fonts for this template -->
   <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css')}}" rel="stylesheet" type="text/css">
   <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
   <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+  
 
   <!-- Custom styles for this template -->
   <link href="{{ url_for('static', filename='css/clean-blog.min.css')}}" rel="stylesheet">
@@ -43,7 +50,7 @@
                 <li class="nav-item dropdown">
                     <a data-toggle="dropdown" class="dropdown-toggle" href="#" aria-expanded="false">
                         <b class="fa fa-user"></b>
-                        <span>&nbsp;&nbsp;Welcome {{ current_user.username }}.</span>
+                        <span class="btn btn-light" style="padding: 3px 9px; margin: 5px;">&nbsp;&nbsp;Welcome {{ current_user.username }}.</span>
                         <b class="caret"></b>
                     </a>
                     <ul class="dropdown-menu animated fadeInRightBig">
@@ -58,10 +65,25 @@
                 </li>
                 <!-- Search Form -->
                 <li class="nav-item">
-                    <form class="form-inline my-2 my-lg-0" action="{{ url_for('search_review') }}" method="POST">
-                        <input class="form-control mr-sm-2" type="search" placeholder="Find A Review" aria-label="Search" name="search" style="width: 150px;">
-                        <button class="btn btn-primary btn-sm my-2 my-sm-0" type="submit" style="padding: 3px 10px;">Search</button>
-                    </form>
+                    <div class="sc-bYwyHq gvNtUq searchform__inputContainer">
+                        <form action="{{ url_for('search_review') }}" method="POST" role="combobox" aria-haspopup="listbox" aria-owns="react-autowhatever-navSuggestionSearch" aria-expanded="false" class="react-autosuggest__container">
+                            <input type="text" autocomplete="off" aria-autocomplete="list" aria-controls="react-autowhatever-navSuggestionSearch" class="whistletownblog-header-search__input searchTypeahead__input react-autosuggest__input" id="suggestion-search" name="search" placeholder="Search" aria-label="Search WhistletownBlog" autocapitalize="off" autocorrect="off" spellcheck="true" value="">
+                            <div id="react-autowhatever-navSuggestionSearch" role="listbox" class="sc-cxNGUP grBAEC react-autosuggest__suggestions-container whistletownblog-header__search-menu">
+                                <div></div>
+                            </div>
+                            <button class="search-button" type="submit">🔍</button> <!-- Set type to submit -->
+                        </form>
+                    </div> 
+                </li>
+                <li class="nav-item">
+                    <div class="clearfix">
+                        <a class="btn btn-light float-right" style="padding: 3px 9px; margin: 7px;" href="{{ url_for('add_movie_review') }}">Review a Movie</a>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <div class="clearfix">
+                        <a class="btn btn-secondary float-right" style="padding: 3px 9px; margin: 7px" href="{{ url_for('movie_genre') }}">Search By Genre</a>
+                    </div>
                 </li>
                 {% else %}
                 <li class="nav-item">

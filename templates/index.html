@@ -1,7 +1,7 @@
 {% extends "bootstrap/base.html" %}
 
 
-{% block head %}
+{% block styles %}
     {{ super() }}
     <title>Mazi Whistletown's Blog</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
@@ -23,21 +23,23 @@
         </div>
     </div>
 </header>
+
 <!-- Main Content -->
 <div class="container">
     <div class="row">
         <div class="col-lg-8 col-md-10 mx-auto">
-            <div class="form-group">
-                <form class="form-inline my-3 my-lg-0" action="{{ url_for('search_review') }}" method="POST">
-                    <input class="form-control mr-sm-2" type="search" placeholder="Find A Review" aria-label="Search" name="search" 
-                    style="width: 250px; border-radius: 20px; padding: 8px 15px; border: 1px solid #ccc; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
-                    <button class="btn btn-primary btn-sm my-2 my-sm-0" type="submit" 
-                    style="padding: 7px 17px; border-radius: 20px; background-color: #007bff; border: none; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); transition: all 0.3s;">
-                        Search
-                    </button>
+            <!-- Search Bar -->
+            
+            <div class="sc-bYwyHq gvNtUq searchform__inputContainer">
+                <form action="{{ url_for('search_review') }}" method="POST" role="combobox" aria-haspopup="listbox" aria-owns="react-autowhatever-navSuggestionSearch" aria-expanded="false" class="react-autosuggest__container">
+                    <input type="text" autocomplete="off" aria-autocomplete="list" aria-controls="react-autowhatever-navSuggestionSearch" class="whistletownblog-header-search__input searchTypeahead__input react-autosuggest__input" id="suggestion-search" name="search" placeholder="Search" aria-label="Search WhistletownBlog" autocapitalize="off" autocorrect="off" spellcheck="true" value="">
+                    <div id="react-autowhatever-navSuggestionSearch" role="listbox" class="sc-cxNGUP grBAEC react-autosuggest__suggestions-container whistletownblog-header__search-menu">
+                        <div></div>
+                    </div>
+                    <button class="search-button" type="submit">🔍</button> <!-- Set type to submit -->
                 </form>
             </div>            
-            <hr/>
+        <hr/>
             <!-- Post Preview -->
             {% for post in all_posts %}
                 <div class="post-preview">
@@ -50,12 +52,12 @@
                         <h3 class="post-subtitle">{{ post.subtitle }}</h3>
                     </a>
                     <p class="post-meta">
-                        Posted by <a href="#">{{ post.author.name }}</a> on {{ post.date }}
+                        Posted by <a href="#">{{ post.author.name }}</a> on {{ post.date }}, Duration: {{ post.duration }} minutes.
                    
                     <!-- Only show edit/delete for post author -->
-                    {% if current_user.id == post.author_id %}
+                    {% if (current_user == 3)  or (current_user.id == 1) %}
                         <a href="{{ url_for('edit_post', post_id=post.id) }}">✎ Edit</a>
-                        <a href="{{ url_for('delete_post', post_id=post.id) }}">✘ Delete</a>
+                        <a href="{{ url_for('confirm_delete', post_id=post.id) }}">✘ Delete</a>
                     {% endif %}
                 </p>
                 </div>

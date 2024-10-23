@@ -1,0 +1,78 @@
+{% extends "bootstrap/base.html" %}
+
+
+{% block head %}
+    {{ super() }}
+    <title>Movie Reviews</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+{% include "header.html" %}
+<header class="masthead" style="background-image: url('https://i.pinimg.com/originals/0c/e0/30/0ce030b57ac7d57f108cec04584e89d6.jpg')">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-md-10 mx-auto">
+                <div class="site-heading">
+                    <h1>Movie Reviews</h1>
+                    <span class="subheading">A collection of users' thoughts</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+<!-- Main Content -->
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="form-group">
+                <form class="form-inline my-3 my-lg-0" action="{{ url_for('search_review') }}" method="POST">
+                    <input class="form-control mr-sm-2" type="search" placeholder="Find A Review" aria-label="Search" name="search" 
+                    style="width: 250px; border-radius: 20px; padding: 8px 15px; border: 1px solid #ccc; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+                    <button class="btn btn-primary btn-sm my-2 my-sm-0" type="submit" 
+                    style="padding: 7px 17px; border-radius: 20px; background-color: #007bff; border: none; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); transition: all 0.3s;">
+                        Search
+                    </button>
+                </form>
+            </div>            
+            <hr/>
+            <!-- Post Preview -->
+            {% for post in posts %}
+                <div class="post-preview">
+                    <a href="{{ url_for('movie_review', post_id=post.id) }}">
+                         <!-- Movie or Blog Poster -->
+                        <div class="post-poster">
+                            <img src="{{ post.img_url }}" alt="Poster for {{ post.title }}" class="floating-poster">
+                        </div>
+                        <h2 class="post-title"><strong>{{ post.title }}</strong></h2>
+                        <h3 class="post-subtitle">{{ post.subtitle }}</h3>
+                        <p> <i class="fa fa-star"></i> {{ post.rating }} / 10 </p>
+                            <strong>{{ post.genre }}</strong>
+
+                        </p>
+                    </a>
+                    <p class="post-meta">
+                        Posted by <a href="#">{{ post.author.name }}</a> on {{ post.date }}
+                   
+                    <!-- Only show edit/delete for admins -->
+                    {% if current_user.is_authenticated and (current_user.id == 1 or current_user.id == 3) %}
+                        <a href="{{ url_for('edit_post', post_id=post.id) }}">✎ Edit</a>
+                        <a href="{{ url_for('delete_post', post_id=post.id) }}">✘ Delete</a>
+                    {% endif %}
+                </p>
+                </div>
+                <hr>
+            {% endfor %}
+            {% if current_user.is_authenticated and (current_user.id == 1 or current_user.id == 3) %}
+                <div class="clearfix">
+                    <a class="btn btn-primary float-right" href="{{ url_for('add_new_post') }}">New Post</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<hr>
+{% include "footer.html" %}
+{% endblock %}

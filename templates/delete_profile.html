@@ -1,0 +1,54 @@
+{% extends 'bootstrap/base.html' %}
+
+{% block head %}
+    {{ super() }}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>confirm_delete_user</title>
+{% endblock %}
+    
+
+{% block styles %}
+  {{ super() }}
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito+Sans:300,400,700">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,700">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/genre.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>Delete Profile</h1>
+                <hr/>
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages() %}
+                  {% if messages %}
+                    <ul class="flashes">
+                      {% for message in messages %}
+                        <li><strong>{{ message }}</strong></li>
+                      {% endfor %}
+                    </ul>
+                  {% endif %}
+                {% endwith %}
+                <form action="{{ url_for('delete_profile', user_id=user.id) }}" method="post">
+                    <p>Hey {{ user.name }}, are you sure you want to permanently delete your profile? We are so sad to see you go 😥</p>
+                    <input type="submit" value="Delete" class="btn btn-danger">
+                    <a href="{{ url_for('profile', user_id=user.id) }}" class="btn btn-primary">profile</a>
+                    <a href="{{ url_for('get_all_posts') }}" class="btn btn-primary">Homepage</a>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+{% endblock %}
+
