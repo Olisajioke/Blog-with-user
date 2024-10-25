@@ -219,17 +219,3 @@ p.overview {
    position: relative;
    color: red !important;
 }
-
-@media screen and (max-width: 800px) {
-    button {
-        padding: 0.4em 0.8em;
-        font-size: smaller;
-    }
-}
-
-@media screen and (max-width: 500px) {
-    button {
-        padding: 0.3em 0.6em;
-        font-size: smaller;
-    }
-}

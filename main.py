@@ -121,6 +121,17 @@ def confirm_edit(func):
         return func(*args, **kwargs)  # Admin can proceed
     return wrapper_edit_func
 
+# Decorator to prevent deleting comments by non-admin users
+def confirm_delete_comment(func):
+    @wraps(func)
+    def wrapper_confirm_del_func(*args, **kwargs):
+        year = datetime.now().year
+        #print(f"Current User ID: {current_user.id}") # Debugging
+        if current_user.id not in (1, 3):  # Block users who are not admin (ID 1)
+            return render_template('403.html', year=year)  # Return forbidden page
+        return func(*args, **kwargs)  # Admin can proceed
+    return wrapper_confirm_del_func
+
 
 #Decorator to prevent adding posts by non-admin users
 def confirm_add(func):
@@ -369,6 +380,7 @@ def delete_post(post_id):
 #delete comment
 @app.route("/delete-comment/<int:comment_id>", methods=["GET", "POST"])
 @login_required
+@confirm_delete_comment
 def delete_comment(comment_id):
     try:
         comment_to_delete = db.session.get(Comment, comment_id)
@@ -553,7 +565,6 @@ def movie_review(post_id):
 def add_movie_review():
     year = datetime.now().year
     form = CreatePostForm()
-    comment = CommentForm()
     user = current_user
     if request.method == 'POST':
         try:
@@ -571,7 +582,7 @@ def add_movie_review():
             db.session.add(new_post)
             db.session.commit()
             movie_id = new_post.id
-            return redirect(url_for("show_movie_review", post_id=movie_id))
+            return redirect(url_for("movie_review", post_id=movie_id))
         except Exception as e:
             print(e)
             #flash("An error occurred while adding your post, please try again.")
@@ -613,9 +624,45 @@ def delete_profile(user_id):
             flash("An error occurred while deleting your profile, please try again.")
         return redirect(url_for('get_all_posts'))
 
+@app.route("/edit-movie-review/<int:post_id>", methods=["GET", "POST"])
+@login_required
+def edit_movie_review(post_id):
+    year = datetime.now().year
+    #post = BlogPost.query.get(post_id)
+    post = db.session.get(BlogPost, post_id)
+    user = current_user
+    edit_form = CreatePostForm(
+        title=post.title,
+        subtitle=post.subtitle,
+        img_url=post.img_url,
+        author=post.author,
+        body=post.body,
+        rating=post.rating,
+        genre=post.genre,
+        duration=post.duration
+    )
+    if edit_form.validate_on_submit():
+        try:
+            post.title = edit_form.title.data
+            post.subtitle = edit_form.subtitle.data
+            post.img_url = edit_form.img_url.data
+            post.author = post.author
+            post.body = edit_form.body.data
+            post.rating = edit_form.rating.data
+            post.genre = edit_form.genre.data
+            post.duration = edit_form.duration.data
+            db.session.commit()
+            return redirect(url_for("show_post", post_id=post.id))
+        except Exception as e:
+            print(e)
+            flash("An error occurred while editing your post, please try again.")
+            return redirect(url_for("edit_post", post_id=post.id))
+
+    return render_template("make-post.html", form=edit_form, year=year, gravatar=gravatar, user=user)
+
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Use environment variable PORT, default to 5000 if not set
-    app.run(host='0.0.0.0', port=port)
-    #app.run(debug=True)
+    #port = int(os.environ.get("PORT", 5000))  # Use environment variable PORT, default to 5000 if not set
+    #app.run(host='0.0.0.0', port=port)
+    app.run(debug=True)
 
