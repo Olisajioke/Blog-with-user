@@ -125,3 +125,9 @@ class SearchGenre(FlaskForm):
                         validators=[DataRequired()],
                         default='Blogpost')  # Default set to 'None' so users must select a genre
     submit = SubmitField("Search")
+
+
+
+class DeleteProfileForm(FlaskForm):
+    """Form for users to delete their account"""
+    submit = SubmitField('Delete', validators=[DataRequired()])

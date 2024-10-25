@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 from flask_gravatar import Gravatar
-from forms import CreatePostForm, RegisterForm, LoginForm, EditProfileForm, CommentForm, SearchForm, SearchGenre
+from forms import CreatePostForm, RegisterForm, LoginForm, EditProfileForm, CommentForm, SearchForm, SearchGenre, DeleteProfileForm
 from flask_migrate import Migrate
 from datetime import datetime
 from flask_principal import Identity, AnonymousIdentity, identity_changed
@@ -191,7 +191,6 @@ def register():
             db.session.add(new_user)
             db.session.commit()
             flash("Registration successful!, please Log in below")
-            #login_user(new_user)
             return redirect(url_for('login'))
         except Exception as e:
             print(e)
@@ -600,33 +599,79 @@ def confirm_delete(post_id):
 
 
 
-#confirm delete user
+# Confirm delete user route
 @app.route("/confirm_delete_user/<int:user_id>", methods=["GET", "POST"])
 @login_required
 def confirm_delete_profile(user_id):
+    form = DeleteProfileForm()
     user = db.session.get(User, user_id)
     year = datetime.now().year
-    return render_template('delete_profile.html', user=user, gravatar=gravatar, year=year)
+    
+    # Render confirmation template with user details
+    return render_template(
+        'delete_profile.html', 
+        user=user, 
+        gravatar=gravatar, 
+        year=year, 
+        form=form
+    ) # Render the confirmation page    
 
 
-#delete user profile
-@app.route("/delete_user/<int:user_id>", methods=["GET", "POST"])
+# Delete user route
+@app.route("/delete_user/<int:user_id>", methods=["POST"])
 @login_required
 def delete_profile(user_id):
+    """Deletes user and reassigns posts"""
+    form = DeleteProfileForm()
+    default_user_id = 10  # Ensure this user exists in the database
+    year = datetime.now().year
+
+    # Check if the form is valid upon submission
     if request.method == 'POST':
         try:
-            user_to_delete = db.session.get(User, user_id)
-            db.session.delete(user_to_delete)
+            # Reassign posts to the default user
+            posts_to_reassign = BlogPost.query.filter_by(author_id=user_id).all()
+            for post in posts_to_reassign:
+                post.author_id = default_user_id
+
+            # Commit reassignment
             db.session.commit()
-            #flash(f"User {user_to_delete.name} has been deleted.")
+
+            comments_to_reassign = Comment.query.filter_by(author_id=user_id).all()
+            for comment in comments_to_reassign:
+                comment.author_id = default_user_id
+
+            # Commit the changes to reassign posts and comments
+            db.session.commit()
+
+            
+            # Delete the user
+            #user_to_delete = User.query.get(user_id)
+            user_to_delete = db.session.get(User, user_id)
+            print(user_to_delete.name)
+            if user_to_delete:
+                db.session.delete(user_to_delete)
+                db.session.commit()
+                print(user_to_delete.name + " has been deleted.")
+                flash(f"User {user_to_delete.name} has been deleted.")
+                return render_template('deleted_profile.html', year=year)
+            else:
+                flash("User not found.")
+                print("User not found.")
         except Exception as e:
+            db.session.rollback()  # Rollback session on error
             print(e)
-            flash("An error occurred while deleting your profile, please try again.")
-        return redirect(url_for('get_all_posts'))
+            flash(f"{e}: An error occurred while deleting your profile, please try again.")
+            print("An error occurred while deleting your profile, please try again.")
+    
+    # If deletion fails or is accessed without submission, redirect to confirmation page
+    return render_template('deleted_profile.html', user_id=user_id, year=year, gravatar=gravatar)
+
 
 @app.route("/edit-movie-review/<int:post_id>", methods=["GET", "POST"])
 @login_required
 def edit_movie_review(post_id):
+    """Edits Movie Review"""
     year = datetime.now().year
     #post = BlogPost.query.get(post_id)
     post = db.session.get(BlogPost, post_id)
