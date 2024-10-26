@@ -38,6 +38,16 @@
                     </div>
                     <button class="search-button" type="submit">🔍</button> <!-- Set type to submit -->
                 </form>
+                 <!--Flash Message-->
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <ul class=flashes>
+                            {% for message in messages %}
+                                <li><strong>{{ message }}</strong></li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
             </div>            
         <hr/>
             <!-- Post Preview -->

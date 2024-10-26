@@ -27,6 +27,16 @@
 <div class="container">
     <div class="row">
         <div class="col-lg-8 col-md-10 mx-auto">
+             <!--Flash Message-->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class=flashes>
+                    {% for message in messages %}
+                        <li><strong>{{ message }}</strong></li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
             <div class="form-group">
                 <form class="form-inline my-3 my-lg-0" action="{{ url_for('search_review') }}" method="POST">
                     <input class="form-control mr-sm-2" type="search" placeholder="Find A Review" aria-label="Search" name="search" 

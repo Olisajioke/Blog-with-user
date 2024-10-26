@@ -584,7 +584,7 @@ def add_movie_review():
             return redirect(url_for("movie_review", post_id=movie_id))
         except Exception as e:
             print(e)
-            #flash("An error occurred while adding your post, please try again.")
+            flash("An error occurred while adding your post, please try again.")
             return redirect(url_for("add_movie_review"))
     return render_template("add_movie_review.html", form=form, year=year, user=user, gravatar=gravatar)
 
@@ -593,6 +593,7 @@ def add_movie_review():
 @app.route("/confirm_delete/<int:post_id>", methods=["GET", "POST"])
 @login_required
 def confirm_delete(post_id):
+    """Confirm deletion of a post"""
     post = db.session.get(BlogPost, post_id)
     year = datetime.now().year
     return render_template('confirm_delete.html', post=post, gravatar=gravatar, year=year)
@@ -614,7 +615,7 @@ def confirm_delete_profile(user_id):
         gravatar=gravatar, 
         year=year, 
         form=form
-    ) # Render the confirmation page    
+    )   
 
 
 # Delete user route
@@ -623,7 +624,7 @@ def confirm_delete_profile(user_id):
 def delete_profile(user_id):
     """Deletes user and reassigns posts"""
     form = DeleteProfileForm()
-    default_user_id = 10  # Ensure this user exists in the database
+    default_user_id = 10  # Default user ID to reassign posts to
     year = datetime.now().year
 
     # Check if the form is valid upon submission
@@ -646,7 +647,6 @@ def delete_profile(user_id):
 
             
             # Delete the user
-            #user_to_delete = User.query.get(user_id)
             user_to_delete = db.session.get(User, user_id)
             print(user_to_delete.name)
             if user_to_delete:
@@ -673,7 +673,6 @@ def delete_profile(user_id):
 def edit_movie_review(post_id):
     """Edits Movie Review"""
     year = datetime.now().year
-    #post = BlogPost.query.get(post_id)
     post = db.session.get(BlogPost, post_id)
     user = current_user
     edit_form = CreatePostForm(

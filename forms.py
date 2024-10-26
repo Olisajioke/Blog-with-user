@@ -120,7 +120,7 @@ class SearchGenre(FlaskForm):
                             ('Novel', 'Novel'),
                             ('Non-fiction', 'Non-fiction'),
                             ('Poetry', 'Poetry'),  # Added comma here
-                            ('Short Story/fiction', 'Short Story/fiction')  # Added comma here
+                            ('Short Story/fiction', 'Short Story/fiction')  
                         ], 
                         validators=[DataRequired()],
                         default='Blogpost')  # Default set to 'None' so users must select a genre

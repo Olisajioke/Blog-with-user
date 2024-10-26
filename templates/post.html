@@ -24,7 +24,16 @@
         </div>
     </div>
 </header>
-
+ <!--Flash Message-->
+ {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class=flashes>
+            {% for message in messages %}
+                <li><strong>{{ message }}</strong></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
 <!-- Post Content -->
 <article>
     <div class="container">
