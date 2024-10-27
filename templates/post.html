@@ -13,12 +13,16 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-8 col-md-10 mx-auto">
-                <div class="post-heading">
-                    <h1>{{ post.title }}</h1>
-                    <h2 class="subheading">{{ post.subtitle }}</h2>
-                    <span class="meta">Posted by
-                        <a href="#">{{ post.author.name }}</a>
-                        on {{ post.date }}, {{ post.duration }} minutes read</span>
+                <div class="col-lg-8 col-md-10 mx-auto">
+                    <div class="post-heading">
+                        <h1>{{ post.title }}</h1>
+                        <h2>{{ post.subtitle }}</h2>
+                        <h3><i class="fas fa-star gold"></i> Rating: {{ post.rating }}/10</h3>
+                        <h3><i class="fas fa-clock"></i> {{ post.duration }} minutes read</h3>
+                        <span class="meta">Reviewed by
+                            <a href="#">{{ post.author.name }}</a>
+                            on {{ post.date }}</span>
+                    </div>
                 </div>
             </div>
         </div>
