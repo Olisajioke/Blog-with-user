@@ -22,7 +22,8 @@
                 {% endwith %}
                 <hr/>
                 <div class="Image" >
-                    <img src="https://img.icons8.com/ios/50/000000/user.png" alt="Profile Image" class="rounded-circle" style="width: 200px; height: 200px; display: block; margin: 0 auto;"> <!--filter: brightness(0) invert(1)-->
+                    <!--img src="https://img.icons8.com/ios/50/000000/user.png" alt="Profile Image" class="rounded-circle" style="width: 200px; height: 200px; display: block; margin: 0 auto;"> filter: brightness(0) invert(1)-->
+                    <img src="{{ gravatar(user.email) }}" alt="Profile Image" class="rounded-circle" style="width: 200px; height: 200px; display: block; margin: 0 auto;">
                 </div>
                 <h2 style="color:black; text-transform: capitalize; text-decoration: solid;" ><span><strong>NAME: {{ user.name }}</strong></span></h2> 
                 <h2 style="color:black; text-transform: capitalize; text-decoration: solid;"><strong>EMAIL: {{ user.email }}</strong></h2>

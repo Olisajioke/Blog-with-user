@@ -2,7 +2,9 @@
 
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% block title %}{{ post.title }}{% endblock %}
+{% block title %}{{ post.title }}
+<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+{% endblock %}
 
 
 {% block content %}
@@ -19,7 +21,7 @@
                         <h2>{{ post.subtitle }}</h2>
                         <h3><i class="fas fa-star gold"></i> Rating: {{ post.rating }}/10</h3>
                         <h3><i class="fas fa-clock"></i> {{ post.duration }} minutes read</h3>
-                        <span class="meta">Reviewed by
+                        <span class="meta">Posted by
                             <a href="#">{{ post.author.name }}</a>
                             on {{ post.date }}</span>
                     </div>
@@ -28,16 +30,7 @@
         </div>
     </div>
 </header>
- <!--Flash Message-->
- {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul class=flashes>
-            {% for message in messages %}
-                <li><strong>{{ message }}</strong></li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-{% endwith %}
+
 <!-- Post Content -->
 <article>
     <div class="container">
@@ -93,7 +86,6 @@
                         {% endif %}
                     </ul>
                 </div>
-
             </div>
         </div>
     </div>

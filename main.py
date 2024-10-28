@@ -151,12 +151,13 @@ def confirm_add(func):
 def get_all_posts():
     try:
         posts = BlogPost.query.all()
+        sorted_posts = sorted(posts, key=lambda post: post.id, reverse=True)
         year = datetime.now().year
         users = User.query.all()
     except Exception as e:
         print(e)
         return render_template('404.html', gravatar=gravatar)
-    return render_template("index.html", all_posts=posts, year=year, users=users, gravatar=gravatar)
+    return render_template("index.html", all_posts=sorted_posts, year=year, users=users, gravatar=gravatar)
 
 
 @login_manager.user_loader

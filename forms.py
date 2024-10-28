@@ -17,6 +17,7 @@ class CreatePostForm(FlaskForm):
                         choices=[
                             ('None', 'Select Genre'),
                             ('Blogpost', 'Blogpost'),
+                            ('Sports', 'Sports'),
                             ('Romance', 'Romance'),
                             ('Horror', 'Horror'),
                             ('Science Fiction', 'Science Fiction'),
@@ -98,6 +99,7 @@ class SearchGenre(FlaskForm):
                         choices=[
                             ('None', 'Select Genre'),
                             ('Blogpost', 'Blogpost'),
+                            ('Sports', 'Sports'),
                             ('Romance', 'Romance'),
                             ('Horror', 'Horror'),
                             ('Science Fiction', 'Science Fiction'),
